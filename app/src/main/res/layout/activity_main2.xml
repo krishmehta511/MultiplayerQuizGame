@@ -12,16 +12,15 @@
         android:id="@+id/rooms_title"
         android:layout_width="175dp"
         android:layout_height="50dp"
-        android:text="Rooms() {"
         android:textAlignment="textStart"
         android:textColor="@color/white"
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.104"
+        app:layout_constraintHorizontal_bias="0.1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.084" />
+        app:layout_constraintVertical_bias="0.1" />
 
     <TextView
         android:id="@+id/rooms_end"
@@ -29,32 +28,30 @@
         android:layout_height="48dp"
         android:text="}"
         android:textAlignment="textStart"
-        android:textColor="@color/white"
+        android:textColor="#006b38"
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.104"
+        app:layout_constraintHorizontal_bias="0.1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.904" />
+        app:layout_constraintVertical_bias="0.9" />
 
     <Button
         android:id="@+id/create_room"
         android:layout_width="300dp"
         android:layout_height="50dp"
         android:background="@android:color/transparent"
-        android:fontFamily="sans-serif"
-        android:text="/* Create Room */"
         android:textAlignment="textStart"
         android:textAllCaps="false"
         android:textColor="@color/white"
-        android:textSize="28sp"
+        android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.938"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.089" />
+        app:layout_constraintVertical_bias="0.1" />
 
     <ListView
         android:id="@+id/rooms_list"

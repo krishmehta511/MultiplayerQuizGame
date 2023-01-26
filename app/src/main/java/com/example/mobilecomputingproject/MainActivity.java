@@ -25,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity {
 
     TextView title;
+    TextView userNameText;
     Button play_btn;
     Button leaderboard_btn;
     Button settings_btn;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         title = findViewById(R.id.AppName);
+        userNameText = findViewById(R.id.userNameText);
         play_btn = findViewById(R.id.create_room);
         leaderboard_btn = findViewById(R.id.leaderboard);
         settings_btn = findViewById(R.id.settings);
@@ -66,10 +68,9 @@ public class MainActivity extends AppCompatActivity {
         if(player_name.equals("")){
             showDialog();
         }
-
+        userNameText.setText("Hi, " + player_name);
         play_btn.setOnClickListener(view ->{
             startActivity(new Intent(getApplicationContext(), MainActivity2.class));
-            finish();
         });
     }
 
