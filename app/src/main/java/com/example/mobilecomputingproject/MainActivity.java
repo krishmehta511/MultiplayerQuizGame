@@ -22,6 +22,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
 
     TextView title;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     TextView warning_text;
 
     String player_name = "";
+    String player_id = "";
     FirebaseDatabase database;
     DatabaseReference playerRef;
 
@@ -67,10 +71,13 @@ public class MainActivity extends AppCompatActivity {
         player_name = preferences.getString("player_name", "");
         if(player_name.equals("")){
             showDialog();
+        } else {
+            userNameText.setText("Hi, " + player_name);
         }
-        userNameText.setText("Hi, " + player_name);
+
         play_btn.setOnClickListener(view ->{
             startActivity(new Intent(getApplicationContext(), MainActivity2.class));
+            finish();
         });
     }
 
@@ -88,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 player_name = user_name.getText().toString();
+                userNameText.setText("Hi, " + player_name);
                 if(!player_name.equals("")){
                     database.getReference().child("players/").child(player_name).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -115,11 +123,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addNewPlayer(){
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("points", 0);
+        newData.put("wins", 0);
+        newData.put("losses", 0);
         playerRef = database.getReference("players/" + player_name);
         SharedPreferences preferences = getSharedPreferences("PREFS", 0);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("player_name", player_name);
         editor.apply();
-        playerRef.setValue("");
+        playerRef.setValue(newData);
     }
 }
