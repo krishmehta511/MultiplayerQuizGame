@@ -93,17 +93,19 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void joinRoom(int i){
         roomId = room_list.get(i);
-        roomRef = database.getReference("rooms/" + roomId).child("Player 2");
-        roomRef.setValue(player_name);
+        roomRef = database.getReference("rooms/" + roomId + "/Players").child(player_name);
+        roomRef.setValue("");
         goToRoomPage();
     }
 
     private void createRoom(){
         Map<String, Object> roomData = new HashMap<>();
-        roomData.put("Host", player_name);
-        roomRef = database.getReference("rooms/" + player_name + "'s Room/");
+        roomData.put(player_name, "");
+        roomRef = database.getReference("rooms/" + player_name + "'s Room/").child("Host");
         roomRef.setValue(roomData);
         roomId = player_name + "'s Room";
+        database.getReference("rooms/" + player_name + "'s Room/").child("Game Status")
+                        .setValue("Not Started");
         goToRoomPage();
     }
 
