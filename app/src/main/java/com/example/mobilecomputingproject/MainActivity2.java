@@ -32,9 +32,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     ListView listView;
     List<String> room_list;
-    TextView rooms_title;
     Button create_room;
-    Button refresh;
     String player_name = "";
     String roomId = "";
 
@@ -53,16 +51,12 @@ public class MainActivity2 extends AppCompatActivity {
         database = FirebaseDatabase.getInstance("https://mobilecomputingproject-d70e0-default-rtdb.asia-southeast1.firebasedatabase.app");
 
         listView = findViewById(R.id.rooms_list);
-        rooms_title = findViewById(R.id.rooms_title);
         create_room = findViewById(R.id.create_room);
-        refresh = findViewById(R.id.refresh_button);
 
         room_list = new ArrayList<>();
 
         //Styling
-        String room_string = "<font color=#ffffff>Rooms</font><font color=#006b38> (){</font>";
         String create_string = "<font color=#006b38>// </font><font color=#ffffff>Create Room</font>";
-        rooms_title.setText(Html.fromHtml(room_string, Html.FROM_HTML_MODE_COMPACT));
         create_room.setText(Html.fromHtml(create_string, Html.FROM_HTML_MODE_COMPACT));
 
         //Getting player name and setting room name
@@ -74,9 +68,6 @@ public class MainActivity2 extends AppCompatActivity {
 
         //Join a room
         listView.setOnItemClickListener((adapterView, view, i, l) -> joinRoom(i));
-
-        //Refresh
-        refresh.setOnClickListener(view -> getRooms());
 
         //On pressing back
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {

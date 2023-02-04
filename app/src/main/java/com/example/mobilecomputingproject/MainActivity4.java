@@ -1,5 +1,6 @@
 package com.example.mobilecomputingproject;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -16,5 +17,15 @@ public class MainActivity4 extends AppCompatActivity {
         //Remove Status Bar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+
+    }
+
+    private OnBackPressedCallback callback(){
+        return new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+
+            }
+        };
     }
 }

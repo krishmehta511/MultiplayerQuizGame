@@ -171,12 +171,15 @@ public class MainActivity3 extends AppCompatActivity {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String status = snapshot.getValue().toString();
                 if(snapshot.exists()){
+                    String status = snapshot.getValue().toString();
                     if(status.equals("Started")){
                         startActivity(new Intent(getApplicationContext(), MainActivity4.class));
                         finish();
                     }
+                } else {
+                    startActivity(new Intent(getApplicationContext(), MainActivity2.class));
+                    finish();
                 }
             }
 

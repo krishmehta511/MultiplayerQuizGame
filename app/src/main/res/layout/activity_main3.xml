@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity3"
     android:orientation="horizontal"
-    android:background="#101820">
+    android:background="@color/app_bg">
 
     <TextView
         android:id="@+id/room_name_tv"
@@ -14,12 +14,17 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:textSize="35sp"
+        android:shadowDx="-13"
+        android:shadowDy="7"
+        android:letterSpacing="0.2"
+        android:shadowColor="@color/app_txt"
+        android:shadowRadius="1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.499"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.072" />
+        app:layout_constraintVertical_bias="0.075" />
 
     <TextView
         android:id="@+id/total_players"
@@ -29,10 +34,10 @@
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.879"
+        app:layout_constraintHorizontal_bias="0.9"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.071" />
+        app:layout_constraintVertical_bias="0.075" />
 
     <Button
         android:id="@+id/start_game_btn"
@@ -40,13 +45,13 @@
         android:layout_height="wrap_content"
         android:text="Start Game"
         android:textColor="@color/white"
-        android:backgroundTint="#006b38"
+        android:backgroundTint="@color/app_txt"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.499"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.953"
+        app:layout_constraintVertical_bias="0.9"
         android:visibility="invisible"/>
 
     <Button
@@ -60,10 +65,10 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.825"
+        app:layout_constraintHorizontal_bias="0.9"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.955" />
+        app:layout_constraintVertical_bias="0.9" />
 
     <GridView
         android:id="@+id/player_grid"

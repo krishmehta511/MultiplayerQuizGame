@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:background="#101820"
+    android:background="@color/app_bg"
     tools:context=".MainActivity4">
 
 </androidx.constraintlayout.widget.ConstraintLayout>
