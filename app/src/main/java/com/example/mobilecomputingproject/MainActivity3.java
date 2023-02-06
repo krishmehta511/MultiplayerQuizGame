@@ -6,8 +6,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -41,6 +41,8 @@ public class MainActivity3 extends AppCompatActivity {
     String playerToRemove = "";
     TextView totalPlayers;
     ArrayList<String> players;
+    DatabaseReference ref;
+    ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +60,7 @@ public class MainActivity3 extends AppCompatActivity {
         totalPlayers = findViewById(R.id.total_players);
 
 
-        database = FirebaseDatabase.getInstance("https://mobilecomputingproject-d70e0-default-rtdb.asia-southeast1.firebasedatabase.app");
+        database = FirebaseDatabase.getInstance();
 
         SharedPreferences prefs = getSharedPreferences("PREFS", 0);
         playerName = prefs.getString("player_name", "");
@@ -100,131 +102,106 @@ public class MainActivity3 extends AppCompatActivity {
         });
 
         remove.setOnClickListener(view -> {
-            players.remove(playerToRemove);
             database.getReference("rooms/"+roomId+"/Players/"+playerToRemove).removeValue();
-            updateAdapter(players);
             playerToRemove = "";
             remove.setEnabled(false);
             remove.setVisibility(View.INVISIBLE);
-            updateTotalPlayers(players.size());
         });
 
-        showPlayers(database, roomId);
-
-        goToGameScreen();
-
-        if(!playerName.equals(hostName)){
-            goToPrevScreenIfRemoved();
-        }
+        allEventsHandler();
 
     }
 
-    private void showPlayers(FirebaseDatabase database,String roomId){
-        DatabaseReference prefs = database.getReference("rooms/" + roomId);
-        prefs.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                players.clear();
-                if(snapshot.exists()){
-                    for(DataSnapshot player: snapshot.getChildren()){
-                        String entry = player.getKey();
-                        assert entry != null;
-                        if(entry.equals("Host")){
-                            for(DataSnapshot p: snapshot.child("Host").getChildren()){
-                                players.add(p.getKey());
-                            }
-                        } else if(entry.equals("Players")){
-                            for (DataSnapshot p: snapshot.child("Players").getChildren()){
-                                players.add(p.getKey());
-                            }
-                        }
-                    }
-                    updateAdapter(players);
-                    updateTotalPlayers(players.size());
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(MainActivity3.this, "Error!!", Toast.LENGTH_SHORT).show();
-                goToPrevPage();
-            }
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ref.removeEventListener(valueEventListener);
     }
 
     private void updateAdapter(ArrayList<String> players){
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.grid_item, R.id.player_name, players);
         playersGV.setAdapter(adapter);
+        totalPlayers.setText("Total Players: " + players.size());
     }
 
-    private void updateTotalPlayers(int i){
-        totalPlayers.setText("Total Players: " + i);
+    private void allEventsHandler(){
+        ref = database.getReference("rooms").child(roomId);
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                players.clear();
+                if(snapshot.exists()){
+                    showPlayersNew(snapshot);
+                    goToGameScreenNew(snapshot);
+                    doesPlayerExistInRoom(snapshot);
+                } else if (!snapshot.exists()) {
+                    goToPrevPage();
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        ref.addValueEventListener(valueEventListener);
+    }
+
+    private void showPlayersNew(DataSnapshot snapshot){
+        for(DataSnapshot player: snapshot.getChildren()){
+            String entry = player.getKey();
+            assert entry != null;
+            if(entry.equals("Host")){
+                for(DataSnapshot p: snapshot.child("Host").getChildren()){
+                    players.add(p.getKey());
+                }
+            } else if(entry.equals("Players")){
+                for (DataSnapshot p: snapshot.child("Players").getChildren()){
+                    players.add(p.getKey());
+                }
+            }
+        }
+        updateAdapter(players);
+    }
+
+    private void goToGameScreenNew(DataSnapshot snapshot){
+        if(snapshot.child("Game Status").exists()){
+            String status = snapshot.child("Game Status").getValue().toString();
+            if (status.equals("Started")){
+                startActivity(new Intent(MainActivity3.this, MainActivity4.class)
+                        .putExtra("room_id", roomId)
+                        .putExtra("host_name", hostName));
+            }
+        }
+    }
+
+    private void doesPlayerExistInRoom(DataSnapshot snapshot){
+        if(!playerName.equals(hostName)){
+            if(!snapshot.child("Players").child(playerName).exists()){
+                players.remove(playerName);
+                updateAdapter(players);
+                goToPrevPage();
+            }
+        }
     }
 
     private void goToPrevPage(){
-        Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
+        Intent intent = new Intent(MainActivity3.this, MainActivity2.class);
         startActivity(intent);
-    }
-
-    private void goToGameScreen(){
-        DatabaseReference ref = database.getReference("rooms/"+roomId+"/Game Status");
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.exists()){
-                    String status = snapshot.getValue().toString();
-                    if(status.equals("Started")){
-                        startActivity(new Intent(getApplicationContext(), MainActivity4.class));
-                        finish();
-                    }
-                } else {
-                    startActivity(new Intent(getApplicationContext(), MainActivity2.class));
-                    finish();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(MainActivity3.this, "Error!",Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void goToPrevScreenIfRemoved(){
-        DatabaseReference refs = database.getReference("rooms/"+roomId+"/Players/"+playerName);
-        refs.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(!snapshot.exists()){
-                    startActivity(new Intent(getApplicationContext(), MainActivity2.class));
-                    finish();
-                    Toast.makeText(getApplicationContext(), "You were removed by Host.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+        finish();
     }
 
     private OnBackPressedCallback customBackFunc(){
         return new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                int len = roomId.length();
-                String hostName = roomId.substring(0, len - 7);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity3.this);
                 if(playerName.equals(hostName)){
                     builder.setCancelable(true)
                             .setTitle("Exit?")
                             .setMessage("You are the room host. On exiting the room will get deleted")
                             .setPositiveButton("Yes", (dialogInterface, i1) -> {
-                                DatabaseReference ref = database.getReference("rooms/" + roomId);
-                                ref.removeValue();
-                                goToPrevPage();
-                                finish();
+                                database.getReference("rooms/" + roomId)
+                                        .removeValue();
                             })
                             .setNegativeButton("No", (dialogInterface, i1) -> dialogInterface.cancel());
                     AlertDialog dialog = builder.create();
@@ -234,10 +211,8 @@ public class MainActivity3 extends AppCompatActivity {
                             .setTitle("Exit?")
                             .setMessage("Do you wish to exit the room?")
                             .setPositiveButton("Yes", (dialogInterface, i1) -> {
-                                DatabaseReference ref = database.getReference("rooms/" + roomId + "/" + playerName);
-                                ref.removeValue();
-                                goToPrevPage();
-                                finish();
+                                database.getReference("rooms/" + roomId + "/Players/" + playerName)
+                                        .removeValue();
                             })
                             .setNegativeButton("No", (dialogInterface, i1) -> dialogInterface.cancel());
                     AlertDialog dialog = builder.create();

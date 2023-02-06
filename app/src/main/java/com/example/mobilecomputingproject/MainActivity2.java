@@ -8,14 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.SpannedString;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,10 +33,9 @@ public class MainActivity2 extends AppCompatActivity {
     Button create_room;
     String player_name = "";
     String roomId = "";
-
     FirebaseDatabase database;
-    DatabaseReference roomRef;
-    DatabaseReference roomsRef;
+    ValueEventListener valueEventListener;
+    DatabaseReference ref;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,16 +45,12 @@ public class MainActivity2 extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //database instance
-        database = FirebaseDatabase.getInstance("https://mobilecomputingproject-d70e0-default-rtdb.asia-southeast1.firebasedatabase.app");
+        database = FirebaseDatabase.getInstance();
 
         listView = findViewById(R.id.rooms_list);
         create_room = findViewById(R.id.create_room);
 
         room_list = new ArrayList<>();
-
-        //Styling
-        String create_string = "<font color=#006b38>// </font><font color=#ffffff>Create Room</font>";
-        create_room.setText(Html.fromHtml(create_string, Html.FROM_HTML_MODE_COMPACT));
 
         //Getting player name and setting room name
         SharedPreferences prefs = getSharedPreferences("PREFS", 0);
@@ -75,6 +68,7 @@ public class MainActivity2 extends AppCompatActivity {
             public void handleOnBackPressed() {
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
+                finish();
             }
         };
         getOnBackPressedDispatcher().addCallback(callback);
@@ -82,27 +76,33 @@ public class MainActivity2 extends AppCompatActivity {
         getRooms();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ref.removeEventListener(valueEventListener);
+    }
+
     private void joinRoom(int i){
         roomId = room_list.get(i);
-        roomRef = database.getReference("rooms/" + roomId + "/Players").child(player_name);
-        roomRef.setValue("");
+        database.getReference("rooms/" + roomId + "/Players").child(player_name)
+                .setValue(0);
         goToRoomPage();
     }
 
     private void createRoom(){
         Map<String, Object> roomData = new HashMap<>();
-        roomData.put(player_name, "");
-        roomRef = database.getReference("rooms/" + player_name + "'s Room/").child("Host");
-        roomRef.setValue(roomData);
+        roomData.put(player_name, 0);
         roomId = player_name + "'s Room";
+        database.getReference("rooms/" + roomId).child("Host")
+                .setValue(roomData);
         database.getReference("rooms/" + player_name + "'s Room/").child("Game Status")
                         .setValue("Not Started");
         goToRoomPage();
     }
 
     private void getRooms(){
-        roomsRef = database.getReference("rooms");
-        roomsRef.addValueEventListener(new ValueEventListener() {
+        ref = database.getReference("rooms");
+        valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 room_list.clear();
@@ -110,20 +110,21 @@ public class MainActivity2 extends AppCompatActivity {
                 for(DataSnapshot dataSnapshot: rooms) {
                     String roomName = dataSnapshot.getKey();
                     room_list.add(roomName);
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity2.this, R.layout.list_item, room_list);
-                    listView.setAdapter(adapter);
                 }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity2.this, R.layout.list_item, room_list);
+                listView.setAdapter(adapter);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
-        });
+        };
+        ref.addValueEventListener(valueEventListener);
     }
 
     private void goToRoomPage(){
-        Intent intent = new Intent(getApplicationContext(), MainActivity3.class);
+        Intent intent = new Intent(MainActivity2.this, MainActivity3.class);
         intent.putExtra("room_id", roomId);
         startActivity(intent);
         finish();

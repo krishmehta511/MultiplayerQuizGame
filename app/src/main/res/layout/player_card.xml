@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="150dp"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:elevation="5dp"
+    android:layout_margin="5dp"
+    android:background="@color/dark_tint"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/score_text"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="10sp"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:textAlignment="center" />
+
+    <ImageView
+        android:id="@+id/player_photo"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:src="@drawable/m_avatar"
+        android:layout_weight="2"/>
+
+    <TextView
+        android:id="@+id/player_alias"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:padding="5sp"
+        android:textAlignment="center"
+        android:layout_weight="1"/>
+
+</LinearLayout>

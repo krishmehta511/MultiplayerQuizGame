@@ -67,6 +67,7 @@
         android:background="@android:color/transparent"
         android:textAlignment="textStart"
         android:textAllCaps="false"
+        android:maxWidth="1000dp"
         android:textColor="@color/white"
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"

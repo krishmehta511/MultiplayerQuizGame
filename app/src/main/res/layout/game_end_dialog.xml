@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#10566A"
+    android:weightSum="1"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/game_result"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="10sp"
+        android:text="Game Ended"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:layout_weight="0.2"/>
+
+    <ListView
+        android:id="@+id/player_rankings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="10sp"
+        android:layout_weight="0.6"
+        android:fadeScrollbars="false"
+        android:scrollbarThumbVertical="@color/app_txt"/>
+
+    <Button
+        android:id="@+id/game_end_btn"
+        android:layout_margin="20sp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/button_bg"
+        android:textColor="@color/white"
+        android:padding="10sp"
+        android:textSize="25sp"
+        android:layout_weight="0.2"
+        android:text="Continue" />
+
+
+</LinearLayout>

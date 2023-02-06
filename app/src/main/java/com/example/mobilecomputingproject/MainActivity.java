@@ -1,5 +1,6 @@
 package com.example.mobilecomputingproject;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         leaderboard_btn.setText(Html.fromHtml(leaderboard_html, Html.FROM_HTML_MODE_COMPACT));
         settings_btn.setText(Html.fromHtml(settings_html, Html.FROM_HTML_MODE_COMPACT));
 
-        database = FirebaseDatabase.getInstance("https://mobilecomputingproject-d70e0-default-rtdb.asia-southeast1.firebasedatabase.app");
+        database = FirebaseDatabase.getInstance();
 
         SharedPreferences preferences = getSharedPreferences("PREFS", 0);
         player_name = preferences.getString("player_name", "");
@@ -69,9 +70,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         play_btn.setOnClickListener(view ->{
-            startActivity(new Intent(getApplicationContext(), MainActivity2.class));
+            startActivity(new Intent(MainActivity.this, MainActivity2.class));
             finish();
         });
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(callback);
     }
 
     private void showDialog(){
