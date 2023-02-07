@@ -1,12 +1,13 @@
 package com.example.mobilecomputingproject;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
@@ -17,11 +18,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     String player_name = "";
     FirebaseDatabase database;
     DatabaseReference playerRef;
+    SQLiteDatabase db;
+    final String db_name = "Leaderboard";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
             userNameText.setText("Hi, " + player_name);
         }
 
+
         play_btn.setOnClickListener(view ->{
             startActivity(new Intent(MainActivity.this, MainActivity2.class));
             finish();
@@ -81,6 +82,16 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(callback);
+
+        //Database
+        databaseInitialization();
+    }
+
+    private void databaseInitialization(){
+        db = openOrCreateDatabase(db_name, Context.MODE_PRIVATE, null);
+        String query = "Create table if not exists " + db_name +
+                "(name varchar, wins number, losses number, points number);";
+        db.execSQL(query);
     }
 
     private void showDialog(){
@@ -97,27 +108,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 player_name = user_name.getText().toString();
-                userNameText.setText("Hi, " + player_name);
-                if(!player_name.equals("")){
-                    database.getReference().child("players/").child(player_name).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if(snapshot.exists()){
-                                warning_text.setText("*Username already exists.");
-                                user_name.setText("");
-                            } else {
-                                addNewPlayer();
-                                dialog.dismiss();
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(MainActivity.this, "Error :(", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                if (player_name.equals("")){
+                    Toast.makeText(MainActivity.this, "Please enter a valid user name."
+                            , Toast.LENGTH_SHORT).show();
                 } else {
-                    warning_text.setText("*Enter valid username.");
+                    String query = "Insert into " + db_name + " values" +
+                            "('"+player_name+"', 0, 0, 0)";
+                    db.execSQL(query);
                 }
             }
         });

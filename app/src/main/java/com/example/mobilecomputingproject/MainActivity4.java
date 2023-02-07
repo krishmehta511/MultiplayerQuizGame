@@ -8,9 +8,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -24,6 +28,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class MainActivity4 extends AppCompatActivity {
     String player_name;
@@ -36,7 +48,9 @@ public class MainActivity4 extends AppCompatActivity {
     RecyclerView recyclerView;
     ArrayList<String> players = new ArrayList<>();
     ArrayList<Integer> player_scores = new ArrayList<>();
-    ArrayList<String> player_gender = new ArrayList<>();
+    ArrayList<String> player_avatar = new ArrayList<>();
+    SQLiteDatabase db;
+    final String db_name = "Leaderboard";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,15 +86,16 @@ public class MainActivity4 extends AppCompatActivity {
 
         player_scores.add(4);
         player_scores.add(2);
-        player_scores.add(0);
+        player_scores.add(10);
         player_scores.add(6);
         player_scores.add(9);
 
-        player_gender.add("F");
-        player_gender.add("M");
-        player_gender.add("F");
-        player_gender.add("M");
-        player_gender.add("F");
+        player_avatar.add("F");
+        player_avatar.add("M");
+        player_avatar.add("F");
+        player_avatar.add("M");
+        player_avatar.add("F");
+
 
 
         initRecycler();
@@ -89,11 +104,63 @@ public class MainActivity4 extends AppCompatActivity {
 
     }
 
+    public void updateDatabase(){
+        db = openOrCreateDatabase(db_name, Context.MODE_PRIVATE, null);
+
+        //create player_name and player_score table
+        HashMap<String, Integer> hm = new HashMap<>();
+        for(int i = 0; i < players.size(); i++){
+            hm.put(players.get(i), player_scores.get(i));
+        }
+
+        //Sort map according to player scores
+        HashMap<String, Integer> sortedHm = sortMap(hm);
+
+        //For winner update win and for rest update loss
+        for (Map.Entry<String, Integer> entry: sortedHm.entrySet()){
+            Cursor cursor = db.rawQuery("Select * from Leaderboard where name='"+entry.getKey()+"'", null);
+            Log.d("xxxxx", cursor.getString(0) + " " + cursor.getString(1) + " " + cursor.getString(2) + " " + cursor.getString(3));
+            if(entry.getValue() == 10){
+                Log.d("xxxxx", "winner");
+                if (cursor.moveToFirst()){
+                    db.execSQL("Update Leaderboard set wins='"+ (cursor.getInt(1) + 1)+"' where name='"+entry.getKey()+"'");
+                }
+                cursor.close();
+            } else {
+                Log.d("xxxxx", "winner");
+                if (cursor.moveToFirst()){
+                    db.execSQL("Update Leaderboard set losses='"+ (cursor.getInt(2) + 1)+"' where name='"+entry.getKey()+"'");
+                }
+                cursor.close();
+            }
+            if (cursor.moveToFirst()){
+                db.execSQL("Update Leaderboard set points='"+ (cursor.getInt(2) + entry.getValue())+"' where name='"+entry.getKey()+"'");
+            }
+            cursor.close();
+        }
+
+    }
+
+    private HashMap<String, Integer> sortMap(HashMap<String, Integer> hm){
+        List<Map.Entry<String, Integer> > list =
+                new LinkedList<>(hm.entrySet());
+
+        // Sort the list
+        list.sort(Map.Entry.comparingByValue());
+
+        // put data from sorted list to hashmap
+        HashMap<String, Integer> temp = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
+    }
+
     private void initRecycler(){
         LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity4.this, LinearLayoutManager.HORIZONTAL, false);
         recyclerView = findViewById(R.id.live_score);
         recyclerView.setLayoutManager(layoutManager);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, players, player_scores, player_gender);
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, players, player_scores, player_avatar);
         recyclerView.setAdapter(adapter);
     }
 
@@ -191,8 +258,9 @@ public class MainActivity4 extends AppCompatActivity {
         standings.setAdapter(adapter);
 
         end_game.setOnClickListener(view -> {
-            startActivity(new Intent(this, MainActivity3.class));
-            finish();
+//            startActivity(new Intent(this, MainActivity3.class));
+//            finish();
+            updateDatabase();
         });
 
         dialog.show();
