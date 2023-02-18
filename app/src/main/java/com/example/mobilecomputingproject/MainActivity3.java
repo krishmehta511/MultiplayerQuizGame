@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,11 +25,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 
 public class MainActivity3 extends AppCompatActivity {
-
     FirebaseDatabase database;
     String roomId = "";
     String hostName = "";
@@ -43,6 +47,7 @@ public class MainActivity3 extends AppCompatActivity {
     ArrayList<String> players;
     DatabaseReference ref;
     ValueEventListener valueEventListener;
+    Map<String, Object> questions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,15 +57,15 @@ public class MainActivity3 extends AppCompatActivity {
         //Hide Status Bar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        //Initialize Database
+        database = FirebaseDatabase.getInstance();
+
         playersGV = findViewById(R.id.player_grid);
         playerAvatar = playersGV.findViewById(R.id.player_avatar);
         playerNameTxt = playersGV.findViewById(R.id.player_name);
         startGame = findViewById(R.id.start_game_btn);
         remove = findViewById(R.id.remove_btn);
         totalPlayers = findViewById(R.id.total_players);
-
-
-        database = FirebaseDatabase.getInstance();
 
         SharedPreferences prefs = getSharedPreferences("PREFS", 0);
         playerName = prefs.getString("player_name", "");
@@ -84,8 +89,9 @@ public class MainActivity3 extends AppCompatActivity {
         }
 
         startGame.setOnClickListener(view -> {
-            if(players.size() > 1){
+            if(players.size() >= 0){
                 database.getReference("rooms/"+roomId+"/Game Status").setValue("Started");
+                createQuestions();
             } else {
                 Toast.makeText(this, "Need at least 2 players to start game.", Toast.LENGTH_SHORT).show();
             }
@@ -96,8 +102,10 @@ public class MainActivity3 extends AppCompatActivity {
             if(playerName.equals(hostName)){
                 remove.setEnabled(true);
                 playerToRemove = players.get(i);
-                remove.setText("Remove " + playerToRemove);
-                remove.setVisibility(View.VISIBLE);
+                if(!playerToRemove.equals(hostName)){
+                    remove.setText("Remove " + playerToRemove);
+                    remove.setVisibility(View.VISIBLE);
+                }
             }
         });
 
@@ -116,6 +124,28 @@ public class MainActivity3 extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         ref.removeEventListener(valueEventListener);
+        Log.d("xxxxx", "Main Activity 3 listener removed.");
+    }
+
+    private void createQuestions(){
+        questions = new HashMap<>();
+        for (int i = 0; i < 20; i++) {
+            int number = new Random().nextInt(9) + 1;
+            ArrayList<Integer> multipliers = new ArrayList<>();
+            while (multipliers.size() < 4){
+                int mul = new Random().nextInt(10) + 1;
+                if (!multipliers.contains(mul)){
+                    multipliers.add(mul);
+                }
+            }
+            int selected_mul = multipliers.get(new Random().nextInt(4));
+            ArrayMap<String, String> options = new ArrayMap<>();
+            for (int j = 0; j < 4; j++) {
+                options.put(String.valueOf(j+1), String.valueOf(number * multipliers.get(j)));
+            }
+            questions.put(number + "  x  " + selected_mul, options);
+        }
+        database.getReference("rooms").child(roomId).child("Questions").setValue(questions);
     }
 
     private void updateAdapter(ArrayList<String> players){
@@ -125,14 +155,16 @@ public class MainActivity3 extends AppCompatActivity {
     }
 
     private void allEventsHandler(){
+        Log.d("xxxxx", "Main Activity 3 listener started.");
         ref = database.getReference("rooms").child(roomId);
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d("xxxxx", "Main Activity 3 listener called.");
                 players.clear();
                 if(snapshot.exists()){
-                    showPlayersNew(snapshot);
-                    goToGameScreenNew(snapshot);
+                    showPlayers(snapshot);
+                    goToGameScreen(snapshot);
                     doesPlayerExistInRoom(snapshot);
                 } else if (!snapshot.exists()) {
                     goToPrevPage();
@@ -146,7 +178,7 @@ public class MainActivity3 extends AppCompatActivity {
         ref.addValueEventListener(valueEventListener);
     }
 
-    private void showPlayersNew(DataSnapshot snapshot){
+    private void showPlayers(DataSnapshot snapshot){
         for(DataSnapshot player: snapshot.getChildren()){
             String entry = player.getKey();
             assert entry != null;
@@ -163,13 +195,16 @@ public class MainActivity3 extends AppCompatActivity {
         updateAdapter(players);
     }
 
-    private void goToGameScreenNew(DataSnapshot snapshot){
+    private void goToGameScreen(DataSnapshot snapshot){
         if(snapshot.child("Game Status").exists()){
             String status = snapshot.child("Game Status").getValue().toString();
             if (status.equals("Started")){
+                ref.removeEventListener(valueEventListener);
+                Log.d("xxxxx", "Main Activity 3 listener removed.");
                 startActivity(new Intent(MainActivity3.this, MainActivity4.class)
                         .putExtra("room_id", roomId)
                         .putExtra("host_name", hostName));
+                finish();
             }
         }
     }
@@ -185,6 +220,8 @@ public class MainActivity3 extends AppCompatActivity {
     }
 
     private void goToPrevPage(){
+        ref.removeEventListener(valueEventListener);
+        Log.d("xxxxx", "Main Activity 3 listener removed.");
         Intent intent = new Intent(MainActivity3.this, MainActivity2.class);
         startActivity(intent);
         finish();

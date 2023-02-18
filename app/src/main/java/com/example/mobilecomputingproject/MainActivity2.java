@@ -36,6 +36,7 @@ public class MainActivity2 extends AppCompatActivity {
     FirebaseDatabase database;
     ValueEventListener valueEventListener;
     DatabaseReference ref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +67,9 @@ public class MainActivity2 extends AppCompatActivity {
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                ref.removeEventListener(valueEventListener);
+                Log.d("xxxxx", "Main Activity 2 listener removed.");
+                Intent intent = new Intent(MainActivity2.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -80,6 +83,7 @@ public class MainActivity2 extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         ref.removeEventListener(valueEventListener);
+        Log.d("xxxxx", "Main Activity 2 listener removed.");
     }
 
     private void joinRoom(int i){
@@ -90,21 +94,23 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     private void createRoom(){
+        roomId = player_name + "'s Room";
         Map<String, Object> roomData = new HashMap<>();
         roomData.put(player_name, 0);
-        roomId = player_name + "'s Room";
         database.getReference("rooms/" + roomId).child("Host")
                 .setValue(roomData);
-        database.getReference("rooms/" + player_name + "'s Room/").child("Game Status")
+        database.getReference("rooms/" + roomId).child("Game Status")
                         .setValue("Not Started");
         goToRoomPage();
     }
 
     private void getRooms(){
+        Log.d("xxxxx", "Main Activity 2 listener started.");
         ref = database.getReference("rooms");
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d("xxxxx", "Main Activity 2 listener called.");
                 room_list.clear();
                 Iterable<DataSnapshot> rooms = snapshot.getChildren();
                 for(DataSnapshot dataSnapshot: rooms) {
@@ -124,6 +130,8 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     private void goToRoomPage(){
+        ref.removeEventListener(valueEventListener);
+        Log.d("xxxxx", "Main Activity 2 listener removed.");
         Intent intent = new Intent(MainActivity2.this, MainActivity3.class);
         intent.putExtra("room_id", roomId);
         startActivity(intent);

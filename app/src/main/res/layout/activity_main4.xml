@@ -45,7 +45,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="75dp"
                 android:background="@color/dark_tint"
-                android:text="Question"
                 android:layout_marginEnd="20dp"
                 android:layout_marginStart="20dp"
                 android:textColor="@color/white"
@@ -63,21 +62,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
                     <Button
+                        android:id="@+id/op1"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="10sp"
-                        android:text="Option 1"
                         android:layout_margin="5sp"
                         android:textSize="30sp"
                         android:background="@drawable/button_bg"
                         android:textColor="@color/white"/>
 
                     <Button
+                        android:id="@+id/op2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="10sp"
                         android:background="@drawable/button_bg"
-                        android:text="Option 2"
                         android:layout_margin="5sp"
                         android:textSize="30sp"
                         android:textColor="@color/white"/>
@@ -88,21 +87,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
                     <Button
+                        android:id="@+id/op3"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="10sp"
-                        android:text="Option 3"
                         android:textSize="30sp"
                         android:background="@drawable/button_bg"
                         android:layout_margin="5sp"
                         android:textColor="@color/white"/>
                     <Button
+                        android:id="@+id/op4"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="10sp"
                         android:layout_margin="5sp"
                         android:background="@drawable/button_bg"
-                        android:text="Option 4"
                         android:textSize="30sp"
                         android:textColor="@color/white"/>
                 </TableRow>
