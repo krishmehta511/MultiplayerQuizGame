@@ -95,12 +95,12 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void createRoom(){
         roomId = player_name + "'s Room";
-        Map<String, Object> roomData = new HashMap<>();
-        roomData.put(player_name, 0);
-        database.getReference("rooms/" + roomId).child("Host")
-                .setValue(roomData);
         database.getReference("rooms/" + roomId).child("Game Status")
                         .setValue("Not Started");
+        database.getReference("rooms/" + roomId).child("Host")
+                .setValue(player_name);
+        database.getReference("rooms/" + roomId + "/Players").child(player_name)
+                .setValue(0);
         goToRoomPage();
     }
 

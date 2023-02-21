@@ -86,7 +86,9 @@ public class MainActivity extends AppCompatActivity {
     private void showDialog(){
         Dialog dialog = new Dialog(MainActivity.this);
         dialog.setContentView(R.layout.signin_dialog);
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow()
+                .setLayout(ViewGroup.LayoutParams.WRAP_CONTENT
+                        , ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.setCancelable(false);
 
         user_name = dialog.findViewById(R.id.username);
@@ -99,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
                 player_name = user_name.getText().toString();
                 userNameText.setText("Hi, " + player_name);
                 if(!player_name.equals("")){
-                    database.getReference().child("players/").child(player_name).addListenerForSingleValueEvent(new ValueEventListener() {
+                    database.getReference().child("players/").child(player_name)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             if(snapshot.exists()){
@@ -113,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(MainActivity.this, "Error :(", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "Error :(", Toast.LENGTH_SHORT)
+                                    .show();
                         }
                     });
                 } else {

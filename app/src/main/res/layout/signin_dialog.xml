@@ -8,7 +8,9 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="      Enter Your Name      "
+        android:text="Enter Your Name"
+        android:paddingEnd="40sp"
+        android:paddingStart="40sp"
         android:textColor="#FFFFFF"
         android:textSize="30sp" />
 

@@ -1,9 +1,5 @@
 package com.example.mobilecomputingproject;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,6 +14,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,9 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 
 
@@ -103,7 +102,7 @@ public class MainActivity3 extends AppCompatActivity {
                 remove.setEnabled(true);
                 playerToRemove = players.get(i);
                 if(!playerToRemove.equals(hostName)){
-                    remove.setText("Remove " + playerToRemove);
+                    remove.setText(String.format("Remove %s", playerToRemove));
                     remove.setVisibility(View.VISIBLE);
                 }
             }
@@ -151,7 +150,7 @@ public class MainActivity3 extends AppCompatActivity {
     private void updateAdapter(ArrayList<String> players){
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.grid_item, R.id.player_name, players);
         playersGV.setAdapter(adapter);
-        totalPlayers.setText("Total Players: " + players.size());
+        totalPlayers.setText(String.format("Total Players: %s", players.size()));
     }
 
     private void allEventsHandler(){
@@ -179,31 +178,20 @@ public class MainActivity3 extends AppCompatActivity {
     }
 
     private void showPlayers(DataSnapshot snapshot){
-        for(DataSnapshot player: snapshot.getChildren()){
-            String entry = player.getKey();
-            assert entry != null;
-            if(entry.equals("Host")){
-                for(DataSnapshot p: snapshot.child("Host").getChildren()){
-                    players.add(p.getKey());
-                }
-            } else if(entry.equals("Players")){
-                for (DataSnapshot p: snapshot.child("Players").getChildren()){
-                    players.add(p.getKey());
-                }
-            }
+        for(DataSnapshot player: snapshot.child("Players").getChildren()){
+            players.add(player.getKey());
         }
         updateAdapter(players);
     }
 
     private void goToGameScreen(DataSnapshot snapshot){
         if(snapshot.child("Game Status").exists()){
-            String status = snapshot.child("Game Status").getValue().toString();
-            if (status.equals("Started")){
+            String status = (String) snapshot.child("Game Status").getValue();
+            if (status != null && status.equals("Started")){
                 ref.removeEventListener(valueEventListener);
                 Log.d("xxxxx", "Main Activity 3 listener removed.");
                 startActivity(new Intent(MainActivity3.this, MainActivity4.class)
-                        .putExtra("room_id", roomId)
-                        .putExtra("host_name", hostName));
+                        .putExtra("room_id", roomId));
                 finish();
             }
         }
@@ -236,10 +224,9 @@ public class MainActivity3 extends AppCompatActivity {
                     builder.setCancelable(true)
                             .setTitle("Exit?")
                             .setMessage("You are the room host. On exiting the room will get deleted")
-                            .setPositiveButton("Yes", (dialogInterface, i1) -> {
-                                database.getReference("rooms/" + roomId)
-                                        .removeValue();
-                            })
+                            .setPositiveButton("Yes", (dialogInterface, i1) ->
+                                    database.getReference("rooms/" + roomId)
+                                    .removeValue())
                             .setNegativeButton("No", (dialogInterface, i1) -> dialogInterface.cancel());
                     AlertDialog dialog = builder.create();
                     dialog.show();
@@ -247,10 +234,9 @@ public class MainActivity3 extends AppCompatActivity {
                     builder.setCancelable(true)
                             .setTitle("Exit?")
                             .setMessage("Do you wish to exit the room?")
-                            .setPositiveButton("Yes", (dialogInterface, i1) -> {
-                                database.getReference("rooms/" + roomId + "/Players/" + playerName)
-                                        .removeValue();
-                            })
+                            .setPositiveButton("Yes", (dialogInterface, i1) ->
+                                    database.getReference("rooms/" + roomId + "/Players/" + playerName)
+                                    .removeValue())
                             .setNegativeButton("No", (dialogInterface, i1) -> dialogInterface.cancel());
                     AlertDialog dialog = builder.create();
                     dialog.show();

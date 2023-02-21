@@ -1,12 +1,5 @@
 package com.example.mobilecomputingproject;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +12,13 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,17 +26,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.concurrent.CompletableFuture;
 
 public class MainActivity4 extends AppCompatActivity {
-    String player_name;
-    String host_name;
+    String playerName;
+    String hostName;
     Boolean isHost;
-    String room_id;
+    String roomId;
     FirebaseDatabase database;
     DatabaseReference ref;
     ValueEventListener valueEventListener;
+    ValueEventListener forScores;
     RecyclerView recyclerView;
     ArrayList<String> questions = new ArrayList<>();
     ArrayList<String> options = new ArrayList<>();
@@ -49,6 +48,9 @@ public class MainActivity4 extends AppCompatActivity {
     Button op3;
     Button op4;
     int question_count = -1;
+    int current_score = 0;
+    int correct_answers = 0;
+    int wrong_answers = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,9 @@ public class MainActivity4 extends AppCompatActivity {
 
         //Remove Status Bar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        //Initialize Firebase database
+        database = FirebaseDatabase.getInstance();
 
         //Initialize Widgets
         initRecycler();
@@ -68,48 +73,31 @@ public class MainActivity4 extends AppCompatActivity {
 
         //Get player name, host name and room id
         SharedPreferences prefs = getSharedPreferences("PREFS", 0);
-        player_name = prefs.getString("player_name", "");
+        playerName = prefs.getString("player_name", "");
         Bundle bundle = getIntent().getExtras();
-        host_name = bundle.getString("host_name");
-        room_id = bundle.getString("room_id");
-        isHost = player_name.equals(host_name);
-
-        //Initialize Firebase database
-        database = FirebaseDatabase.getInstance();
+        roomId = bundle.getString("room_id");
+        hostName = roomId.substring(0, roomId.length() - 7);
+        isHost = playerName.equals(hostName);
 
         //Handle back press based on host or user
         OnBackPressedCallback callback = customBackFunc();
         getOnBackPressedDispatcher().addCallback(callback);
 
         //Get all questions and options from db
-        database.getReference("rooms").child(room_id).child("Questions")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot ds: snapshot.getChildren()){
-                    questions.add(ds.getKey());
-                    for(DataSnapshot dss: ds.getChildren()){
-                        options.add((String) dss.getValue());
-                    }
-                }
-                updateQuestions();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
-
-
-        op1.setOnClickListener(view -> updateQuestions());
-        op2.setOnClickListener(view -> updateQuestions());
-        op3.setOnClickListener(view -> updateQuestions());
-        op4.setOnClickListener(view -> updateQuestions());
+        addQuestions();
 
         allEventsHandler();
 
+        op1.setOnClickListener(view -> onClick(op1));
+        op2.setOnClickListener(view -> onClick(op2));
+        op3.setOnClickListener(view -> onClick(op3));
+        op4.setOnClickListener(view -> onClick(op4));
+
+    }
+
+    private void onClick(Button op){
+        checkAnswer(op);
+        updateQuestions();
     }
 
     private void initRecycler(){
@@ -118,6 +106,42 @@ public class MainActivity4 extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, players, player_scores, player_avatar);
         recyclerView.setAdapter(adapter);
+    }
+
+    private void addQuestions(){
+        database.getReference("rooms").child(roomId).child("Questions")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot ds: snapshot.getChildren()){
+                            questions.add(ds.getKey());
+                            for(DataSnapshot dss: ds.getChildren()){
+                                options.add((String) dss.getValue());
+                            }
+                        }
+                        updateQuestions();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    private void checkAnswer(Button option){
+        String[] question_txt = question.getText().toString().split("x");
+        int correct_ans = Integer.parseInt(question_txt[0].trim()) * Integer.parseInt(question_txt[1].trim());
+        int chosen_opt = Integer.parseInt(option.getText().toString());
+        DatabaseReference sRef = database.getReference("rooms").child(roomId)
+                .child("Players").child(playerName);
+        if(correct_ans == chosen_opt){
+            correct_answers ++;
+            sRef.setValue(current_score+1);
+        } else {
+            wrong_answers ++;
+            sRef.setValue(current_score-1);
+        }
     }
 
     private void updateQuestions(){
@@ -129,8 +153,11 @@ public class MainActivity4 extends AppCompatActivity {
         op4.setText(options.get((4 * question_count) + 3));
     }
 
-    private void updateRecycler(DataSnapshot snapshot, String client){
-        for(DataSnapshot ds: snapshot.child(client).getChildren()){
+    private void updateRecycler(DataSnapshot snapshot){
+        players.clear();
+        player_scores.clear();
+        player_avatar.clear();
+        for(DataSnapshot ds: snapshot.child("Players").getChildren()){
             players.add(ds.getKey());
             player_scores.add(Integer.valueOf(String.valueOf(ds.getValue())));
             player_avatar.add("M");
@@ -145,6 +172,7 @@ public class MainActivity4 extends AppCompatActivity {
         ref.removeEventListener(valueEventListener);
         Log.d("xxxxx", "Main Activity 4 listener removed.");
         question_count = -1;
+        current_score = 0;
     }
 
     private OnBackPressedCallback customBackFunc(){
@@ -152,15 +180,15 @@ public class MainActivity4 extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity4.this);
-                DatabaseReference dRef = database.getReference("rooms").child(room_id);
-                if(player_name.equals(host_name)){
+                DatabaseReference dRef = database.getReference("rooms").child(roomId);
+                if(playerName.equals(hostName)){
                     builder.setCancelable(true)
                             .setTitle("End Game")
                             .setMessage("If the host leaves the game will end and host will " +
                                     "be penalised. Do you want to leave ?")
                             .setNegativeButton("No", (dialogInterface, i) -> dialogInterface.dismiss())
-                            .setPositiveButton("Yes", ((dialogInterface, i) -> {
-                                dRef.child("Game Status").setValue("Not Started");
+                            .setPositiveButton("Yes", ((dialogInterface, i) ->{
+                                    dRef.child("Game Status").setValue("Not Started");
                             }));
                     AlertDialog dialog = builder.create();
                     dialog.show();
@@ -170,9 +198,8 @@ public class MainActivity4 extends AppCompatActivity {
                             .setMessage("If you leave the game you will be penalised." +
                                     " Do you want to leave ?")
                             .setNegativeButton("No", (dialogInterface, i) -> dialogInterface.dismiss())
-                            .setPositiveButton("Yes", ((dialogInterface, i) -> {
-                                dRef.child("Players").child(player_name).removeValue();
-                            }));
+                            .setPositiveButton("Yes", ((dialogInterface, i) ->
+                                    dRef.child("Players").child(playerName).removeValue()));
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 }
@@ -182,42 +209,49 @@ public class MainActivity4 extends AppCompatActivity {
 
     private void goToPrevPage(){
         question_count = -1;
+        current_score = 0;
         ref.removeEventListener(valueEventListener);
         Log.d("xxxxx", "Main Activity 4 listener removed.");
         Intent intent = new Intent(MainActivity4.this, MainActivity3.class);
-        intent.putExtra("room_id", room_id);
+        intent.putExtra("room_id", roomId);
         startActivity(intent);
         finish();
     }
 
     private void allEventsHandler(){
         Log.d("xxxxx", "Main Activity 4 listener started.");
-        ref = database.getReference("rooms").child(room_id);
+        ref = database.getReference("rooms").child(roomId);
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Log.d("xxxxx", "Main Activity 4 listener called.");
                 if (snapshot.exists()){
                     String status = (String) snapshot.child("Game Status").getValue();
-                    if(!isHost){
-                        if(!snapshot.child("Players").child(player_name).exists()){
-                            question_count = -1;
-                            ref.removeEventListener(valueEventListener);
-                            startActivity(new Intent(MainActivity4.this, MainActivity2.class));
-                            finish();
-                        }
-                    }
                     if(status == null || status.equals("Not Started")){
-                        database.getReference("rooms").child(room_id)
-                                .child("Questions").removeValue();
+                        ref.child("Questions").removeValue();
+                        for(DataSnapshot ds: snapshot.child("Players").getChildren()){
+                            ref.child("Players").child(ds.getKey()).setValue(0);
+                        }
                         goToPrevPage();
                     }
-                    else {
-                        players.clear();
-                        player_scores.clear();
-                        player_avatar.clear();
-                        updateRecycler(snapshot, "Host");
-                        updateRecycler(snapshot, "Players");
+                    if(!snapshot.child("Players").child(playerName).exists()){
+                        question_count = -1;
+                        current_score = 0;
+                        ref.removeEventListener(valueEventListener);
+                        startActivity(new Intent(MainActivity4.this, MainActivity2.class));
+                        finish();
+                    }
+                    if(snapshot.child("Players").child(playerName).exists()){
+                        current_score = Integer.parseInt(String.valueOf(snapshot.child("Players")
+                                .child(playerName).getValue()));
+                        if(current_score == 10){
+                            ref.child("Game Status").setValue("Game End");
+                        }
+                        updateRecycler(snapshot);
+                    }
+                    if(status != null && status.equals("Game Ended")){
+                        //add player points
+                        gameEndDialog();
                     }
                 }
             }
@@ -237,22 +271,14 @@ public class MainActivity4 extends AppCompatActivity {
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
         Button end_game = dialog.findViewById(R.id.game_end_btn);
-        ListView standings = dialog.findViewById(R.id.player_rankings);
 
-        ArrayList<String> rankings = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            if (i == 0){
-                rankings.add((i+1) + ")          P"+(i+1));
-            } else {
-                rankings.add((i+1) + ")         P"+(i+1));
-            }
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.list_item, rankings);
-        standings.setAdapter(adapter);
 
         end_game.setOnClickListener(view -> {
-            startActivity(new Intent(this, MainActivity3.class));
+            current_score = 0;
+            question_count = -1;
+            ref.removeEventListener(valueEventListener);
+            startActivity(new Intent(this, MainActivity3.class)
+                    .putExtra("room_id", roomId));
             finish();
         });
 
