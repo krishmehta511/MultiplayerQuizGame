@@ -129,6 +129,7 @@ public class MainActivity3 extends AppCompatActivity {
     private void createQuestions(){
         questions = new HashMap<>();
         for (int i = 0; i < 20; i++) {
+            questions.clear();
             int number = new Random().nextInt(9) + 1;
             ArrayList<Integer> multipliers = new ArrayList<>();
             while (multipliers.size() < 4){
@@ -143,8 +144,9 @@ public class MainActivity3 extends AppCompatActivity {
                 options.put(String.valueOf(j+1), String.valueOf(number * multipliers.get(j)));
             }
             questions.put(number + "  x  " + selected_mul, options);
+            database.getReference("rooms").child(roomId).child("Questions").push()
+                    .setValue(questions);
         }
-        database.getReference("rooms").child(roomId).child("Questions").setValue(questions);
     }
 
     private void updateAdapter(ArrayList<String> players){

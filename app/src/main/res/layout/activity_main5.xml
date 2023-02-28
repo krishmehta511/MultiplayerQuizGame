@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101820"
+    android:orientation="vertical"
+    android:weightSum="1"
+    tools:context=".MainActivity5">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:text="LeaderBoard"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        android:gravity="center"
+        android:layout_weight="0.2"/>
+
+    <ListView
+        android:id="@+id/ldb_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.8"
+        tools:listitem="@layout/leaderboard_list_item"/>
+</LinearLayout>

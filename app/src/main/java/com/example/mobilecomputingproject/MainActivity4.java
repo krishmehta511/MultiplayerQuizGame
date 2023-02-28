@@ -7,9 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -25,7 +23,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity4 extends AppCompatActivity {
     String playerName;
@@ -35,7 +37,6 @@ public class MainActivity4 extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference ref;
     ValueEventListener valueEventListener;
-    ValueEventListener forScores;
     RecyclerView recyclerView;
     ArrayList<String> questions = new ArrayList<>();
     ArrayList<String> options = new ArrayList<>();
@@ -114,9 +115,13 @@ public class MainActivity4 extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for(DataSnapshot ds: snapshot.getChildren()){
-                            questions.add(ds.getKey());
-                            for(DataSnapshot dss: ds.getChildren()){
-                                options.add((String) dss.getValue());
+                            String key = ds.getKey();
+                            assert key != null;
+                            for(DataSnapshot dss: snapshot.child(key).getChildren()){
+                                questions.add(dss.getKey());
+                                for(DataSnapshot dsss: dss.getChildren()){
+                                    options.add((String) dsss.getValue());
+                                }
                             }
                         }
                         updateQuestions();
@@ -187,9 +192,8 @@ public class MainActivity4 extends AppCompatActivity {
                             .setMessage("If the host leaves the game will end and host will " +
                                     "be penalised. Do you want to leave ?")
                             .setNegativeButton("No", (dialogInterface, i) -> dialogInterface.dismiss())
-                            .setPositiveButton("Yes", ((dialogInterface, i) ->{
-                                    dRef.child("Game Status").setValue("Not Started");
-                            }));
+                            .setPositiveButton("Yes", ((dialogInterface, i) ->
+                                    dRef.child("Game Status").setValue("Not Started")));
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 } else {
@@ -234,6 +238,21 @@ public class MainActivity4 extends AppCompatActivity {
                         }
                         goToPrevPage();
                     }
+                    if(status != null && status.equals("Game End")){
+                        ref.child("Winner").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                String winner = (String) snapshot.getValue();
+                                assert winner != null;
+                                updateWinnerPoints(winner);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                    }
                     if(!snapshot.child("Players").child(playerName).exists()){
                         question_count = -1;
                         current_score = 0;
@@ -244,14 +263,11 @@ public class MainActivity4 extends AppCompatActivity {
                     if(snapshot.child("Players").child(playerName).exists()){
                         current_score = Integer.parseInt(String.valueOf(snapshot.child("Players")
                                 .child(playerName).getValue()));
-                        if(current_score == 10){
+                        if(current_score >= 10){
+                            ref.child("Winner").setValue(playerName);
                             ref.child("Game Status").setValue("Game End");
                         }
                         updateRecycler(snapshot);
-                    }
-                    if(status != null && status.equals("Game Ended")){
-                        //add player points
-                        gameEndDialog();
                     }
                 }
             }
@@ -264,18 +280,43 @@ public class MainActivity4 extends AppCompatActivity {
         ref.addValueEventListener(valueEventListener);
     }
 
-    private void gameEndDialog(){
+    private void updateWinnerPoints(String winner){
+        DatabaseReference dbRef = database.getReference("players").child(winner).child("points");
+        dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                dbRef.setValue((int)(long)snapshot.getValue() + 10);
+                gameEndDialog(winner);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void gameEndDialog(String winner){
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.game_end_dialog);
         dialog.setCancelable(false);
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
         Button end_game = dialog.findViewById(R.id.game_end_btn);
+        TextView winner_txt = dialog.findViewById(R.id.ge_winner);
 
+        winner_txt.setText(winner);
+
+        DatabaseReference dRef = database.getReference("rooms").child(roomId);
 
         end_game.setOnClickListener(view -> {
+            dialog.dismiss();
             current_score = 0;
             question_count = -1;
+            dRef.child("Game Status").setValue("Not Started");
+            dRef.child("Questions").removeValue();
+            dRef.child("Players").child(playerName).setValue(0);
+            dRef.child("Winner").removeValue();
             ref.removeEventListener(valueEventListener);
             startActivity(new Intent(this, MainActivity3.class)
                     .putExtra("room_id", roomId));

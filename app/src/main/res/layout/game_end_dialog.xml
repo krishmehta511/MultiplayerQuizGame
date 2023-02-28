@@ -1,75 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:background="@color/dark_tint"
     android:weightSum="1"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/game_result"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:padding="10sp"
-        android:text="Game Ended"
-        android:textColor="@color/white"
-        android:textAlignment="center"
-        android:textSize="25sp"
-        android:layout_weight="0.2"/>
-
-   <RelativeLayout
+    <RelativeLayout
        android:layout_width="match_parent"
        android:layout_height="0dp"
-       android:layout_weight="0.6">
+       android:layout_weight="0.8">
 
        <ImageView
            android:id="@+id/ge_avatar"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
+           android:layout_width="0dp"
+           android:layout_height="0dp"
            android:layout_below="@+id/ge_winner"
-           android:layout_alignBottom="@+id/ge_winner"
            android:layout_alignParentStart="true"
            android:layout_alignParentBottom="true"
-           android:layout_toStartOf="@id/ge_stats"
+           android:layout_alignParentEnd="true"
            android:src="@drawable/f_avatar" />
 
        <TextView
            android:id="@+id/ge_winner"
-           android:layout_width="wrap_content"
+           android:layout_width="0dp"
            android:layout_height="wrap_content"
            android:layout_alignParentStart="true"
            android:layout_alignParentTop="true"
-           android:layout_toStartOf="@id/ge_name"
-           android:text="WINNER"
-           android:padding="20sp"
-           android:gravity="center"
-           android:textColor="@color/white"
-           android:textSize="25sp" />
-
-       <TextView
-           android:id="@+id/ge_name"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
            android:layout_alignParentEnd="true"
-           android:layout_alignParentTop="true"
-           android:gravity="center"
-           android:padding="20sp"
-           android:text="WINNER"
-           android:textColor="@color/white"
-           android:textSize="25sp" />
-
-       <TextView
-           android:id="@+id/ge_stats"
-           android:layout_width="wrap_content"
-           android:layout_height="match_parent"
-           android:layout_alignParentEnd="true"
-           android:layout_alignParentBottom="true"
-           android:layout_below="@id/ge_name"
-           android:gravity="center"
            android:text="WINNER"
            android:padding="20sp"
+           android:gravity="center"
            android:textColor="@color/white"
-           android:textSize="25sp" />
+           android:textSize="35sp" />
 
 
    </RelativeLayout>
@@ -86,5 +49,5 @@
         android:layout_weight="0.2"
         android:text="Continue" />
 
-
 </LinearLayout>
+

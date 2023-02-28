@@ -74,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
             finish();
         });
 
+        leaderboard_btn.setOnClickListener(view -> {
+            startActivity(new Intent(MainActivity.this, MainActivity5.class));
+            finish();
+        });
+
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -109,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                                 warning_text.setText("*Username already exists.");
                                 user_name.setText("");
                             } else {
-                                addNewPlayer();
+                                addNewPlayer(1);
                                 dialog.dismiss();
                             }
                         }
@@ -128,11 +133,10 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void addNewPlayer(){
+    private void addNewPlayer(int avatar){
         Map<String, Object> newData = new HashMap<>();
         newData.put("points", 0);
-        newData.put("wins", 0);
-        newData.put("losses", 0);
+        newData.put("avatar", avatar);
         playerRef = database.getReference("players/" + player_name);
         SharedPreferences preferences = getSharedPreferences("PREFS", 0);
         SharedPreferences.Editor editor = preferences.edit();
