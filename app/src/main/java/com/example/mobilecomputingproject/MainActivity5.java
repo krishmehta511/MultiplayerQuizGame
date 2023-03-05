@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ListView;
@@ -23,12 +24,10 @@ import java.util.Map;
 public class MainActivity5 extends AppCompatActivity {
     ListView ldb;
     FirebaseDatabase database;
-    ValueEventListener valueEventListener;
     DatabaseReference ref;
-    ArrayList<Integer> rankings;
-    ArrayList<String> playerNames;
-    ArrayList<Integer> points;
-    Map<String, ArrayList<Integer>> playerDetails;
+    ArrayList<Integer> images = new ArrayList<>();
+    ArrayList<String> playerNames = new ArrayList<>();
+    ArrayList<Integer> points = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,45 +50,40 @@ public class MainActivity5 extends AppCompatActivity {
         //Initializing the database
         database = FirebaseDatabase.getInstance();
 
+        eventHandler();
+
     }
 
-    private void initAdapter(Map<String, ArrayList<Integer>> playerDetails){
-        for(Map.Entry<String, ArrayList<Integer>> entry: playerDetails.entrySet()){
-            playerNames.add(entry.getKey());
-            points.add(entry.getValue().get(0));
-        }
-//        LeaderBoardListItemAdapter adapter =
-//                new LeaderBoardListItemAdapter(MainActivity5.this, img, txt, names, points);
-//        ldb.setAdapter(adapter);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        ref.removeEventListener(valueEventListener);
+    private void initAdapter(){
+        LeaderBoardListItemAdapter adapter =
+                new LeaderBoardListItemAdapter(MainActivity5.this, images, playerNames, points);
+        ldb.setAdapter(adapter);
     }
 
     private void eventHandler(){
-        playerDetails = new HashMap<>();
         ref = database.getReference("players");
-        valueEventListener = new ValueEventListener() {
+        ref.orderByChild("points").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot ds: snapshot.getChildren()){
-                    ArrayList<Integer> arr = new ArrayList<>();
-                    arr.add((int)(long)ds.child("points").getValue());
-                    arr.add((int)(long)ds.child("avatar").getValue());
-                    playerDetails.put(ds.getKey(), arr);
-                    initAdapter(playerDetails);
+                for(DataSnapshot ds: snapshot.getChildren()){
+                    Log.d("xxxx", ds.getKey());
+                    Log.d("xxxx", ds.getValue().toString());
+                    playerNames.add(ds.getKey());
+                    if((int)(long)ds.child("avatar").getValue() == 1){
+                        images.add(R.drawable.m_avatar);
+                    } else {
+                        images.add(R.drawable.f_avatar);
+                    }
+                    points.add(-1*(int)(long)ds.child("points").getValue());
                 }
+                initAdapter();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
-        };
+        });
 
-        ref.addValueEventListener(valueEventListener);
     }
 }

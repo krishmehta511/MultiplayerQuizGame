@@ -11,18 +11,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 public class LeaderBoardListItemAdapter extends ArrayAdapter {
-    private final Integer[] rankingsImg;
-    private final Integer[] rankingsTxt;
-    private final String[] players;
-    private final Integer[] points;
+    private final ArrayList<Integer> rankingsImg;
+    private final ArrayList<String> players;
+    private final ArrayList<Integer> points;
     private final Context context;
 
-    public LeaderBoardListItemAdapter(Context context, Integer[] rankingsImg, Integer[] rankingsTxt, String[] players, Integer[] points) {
+    public LeaderBoardListItemAdapter(Context context, ArrayList<Integer> rankingsImg, ArrayList<String> players, ArrayList<Integer> points) {
         super(context, R.layout.leaderboard_list_item, players);
         this.context = context;
         this.rankingsImg = rankingsImg;
-        this.rankingsTxt = rankingsTxt;
         this.players = players;
         this.points = points;
     }
@@ -36,14 +36,12 @@ public class LeaderBoardListItemAdapter extends ArrayAdapter {
             row = layoutInflater.inflate(R.layout.leaderboard_list_item, null,true);
         }
         ImageView img = row.findViewById(R.id.ranking_img);
-        TextView txt = row.findViewById(R.id.ranking_txt);
         TextView name = row.findViewById(R.id.player_name_ldb);
         TextView points_tv = row.findViewById(R.id.points);
 
-        img.setImageResource(rankingsImg[position]);
-        txt.setText(String.valueOf(rankingsTxt[position]));
-        name.setText(players[position]);
-        points_tv.setText(String.valueOf(points[position]));
+        img.setImageResource(rankingsImg.get(position));
+        name.setText(players.get(position));
+        points_tv.setText(String.valueOf(points.get(position)));
 
         return row;
     }

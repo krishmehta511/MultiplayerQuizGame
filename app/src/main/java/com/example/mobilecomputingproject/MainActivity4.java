@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -23,11 +24,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity4 extends AppCompatActivity {
     String playerName;
@@ -52,6 +49,7 @@ public class MainActivity4 extends AppCompatActivity {
     int current_score = 0;
     int correct_answers = 0;
     int wrong_answers = 0;
+    int player_count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -239,12 +237,27 @@ public class MainActivity4 extends AppCompatActivity {
                         goToPrevPage();
                     }
                     if(status != null && status.equals("Game End")){
+                        ref.child("Players").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                player_count = (int) snapshot.getChildrenCount();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
                         ref.child("Winner").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 String winner = (String) snapshot.getValue();
                                 assert winner != null;
-                                updateWinnerPoints(winner);
+                                if(player_count > 1){
+                                    updateWinnerPoints(winner);
+                                } else {
+                                    gameEndDialog(winner);
+                                }
                             }
 
                             @Override
@@ -285,7 +298,7 @@ public class MainActivity4 extends AppCompatActivity {
         dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                dbRef.setValue((int)(long)snapshot.getValue() + 10);
+                dbRef.setValue((int)(long)snapshot.getValue() - 10);
                 gameEndDialog(winner);
             }
 
@@ -304,6 +317,25 @@ public class MainActivity4 extends AppCompatActivity {
 
         Button end_game = dialog.findViewById(R.id.game_end_btn);
         TextView winner_txt = dialog.findViewById(R.id.ge_winner);
+        ImageView avtr = dialog.findViewById(R.id.ge_avatar);
+
+        database.getReference("players").child(winner).child("avatar").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists() && snapshot.getValue() != null){
+                    if (snapshot.getValue().toString().equals("1")){
+                        avtr.setImageResource(R.drawable.m_avatar);
+                    } else {
+                        avtr.setImageResource(R.drawable.f_avatar);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
         winner_txt.setText(winner);
 

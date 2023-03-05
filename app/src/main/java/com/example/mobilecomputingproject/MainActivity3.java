@@ -88,11 +88,13 @@ public class MainActivity3 extends AppCompatActivity {
         }
 
         startGame.setOnClickListener(view -> {
-            if(players.size() >= 0){
+            if(players.size() > 1){
                 database.getReference("rooms/"+roomId+"/Game Status").setValue("Started");
                 createQuestions();
             } else {
-                Toast.makeText(this, "Need at least 2 players to start game.", Toast.LENGTH_SHORT).show();
+                database.getReference("rooms/"+roomId+"/Game Status").setValue("Started");
+                createQuestions();
+                Toast.makeText(this, "Single Player Game. You wont be awarded any points for this.", Toast.LENGTH_SHORT).show();
             }
         });
 
